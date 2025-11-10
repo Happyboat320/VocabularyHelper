@@ -1,0 +1,18 @@
+[
+  {
+    "id": "w1",
+    "term": "abandon",
+    "phonetic": "əˈbændən",
+    "meaning": "to leave someone or something somewhere, sometimes not returning to get them",
+    "examples": ["They had to abandon the car."]
+  },
+  { "id": "w2", "term": "benevolent", "phonetic": "bəˈnevələnt", "meaning": "well meaning and kindly", "examples": ["A benevolent smile."] },
+  { "id": "w3", "term": "candid", "phonetic": "ˈkændɪd", "meaning": "truthful and straightforward", "examples": ["A candid discussion."] },
+  { "id": "w4", "term": "diligent", "phonetic": "ˈdɪlɪdʒənt", "meaning": "showing care and conscientiousness in one's work", "examples": ["A diligent student."] },
+  { "id": "w5", "term": "eloquent", "phonetic": "ˈeləkwənt", "meaning": "fluent or persuasive in speaking or writing", "examples": ["An eloquent speech."] },
+  { "id": "w6", "term": "frugal", "phonetic": "ˈfruːɡəl", "meaning": "sparing or economical with regard to money", "examples": ["A frugal lifestyle."] },
+  { "id": "w7", "term": "gregarious", "phonetic": "ɡrɪˈɡeəriəs", "meaning": "fond of company; sociable", "examples": ["She is very gregarious."] },
+  { "id": "w8", "term": "humble", "phonetic": "ˈhʌmbəl", "meaning": "having a modest opinion of one's importance", "examples": ["He remained humble."] },
+  { "id": "w9", "term": "impeccable", "phonetic": "ɪmˈpɛkəbəl", "meaning": "in accordance with the highest standards; faultless", "examples": ["Impeccable manners."] },
+  { "id": "w10", "term": "jubilant", "phonetic": "ˈdʒuːbɪlənt", "meaning": "feeling or expressing great happiness", "examples": ["Jubilant fans."] }
+]
