@@ -12,7 +12,7 @@
     </div>
 
     <div class="card__body">
-      <p class="meaning">{{ word.meaning }}</p>
+  <p class="meaning">{{ word.meaning }}</p>
       <ul v-if="word.examples?.length" class="examples">
         <li v-for="(e, i) in word.examples" :key="i">{{ e }}</li>
       </ul>
@@ -25,14 +25,10 @@ import type { Word } from '@/types'
 
 const props = defineProps<{ word: Word; index: number; total: number }>()
 
+import { speakWordWithExample } from '@/utils/speech'
+
 const speak = () => {
-  const text = `${props.word.term}. ${props.word.examples?.[0] ?? ''}`.trim()
-  if ('speechSynthesis' in window && text) {
-    const utter = new SpeechSynthesisUtterance(text)
-    utter.lang = 'en-US'
-    window.speechSynthesis.cancel()
-    window.speechSynthesis.speak(utter)
-  }
+  speakWordWithExample(props.word)
 }
 </script>
 
@@ -76,6 +72,7 @@ const speak = () => {
 .meaning {
   margin-top: 8px;
   font-size: 18px;
+  white-space: pre-line; /* 展示字符串中的换行符 */
 }
 .examples {
   margin-top: 8px;

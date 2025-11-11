@@ -1,1 +1,1 @@
-{"root":["./src/app.vue","./src/env.d.ts","./src/main.ts","./src/types.ts","./src/components/wordcard.vue","./src/stores/session.ts","./src/utils/time.ts"],"version":"5.9.3"}
+{"root":["./src/app.vue","./src/env.d.ts","./src/main.ts","./src/types.ts","./src/components/wordcard.vue","./src/data/libraries.ts","./src/stores/session.ts","./src/utils/speech.ts","./src/utils/time.ts"],"version":"5.9.3"}

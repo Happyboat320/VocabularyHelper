@@ -1,7 +1,8 @@
 // Vocabulary session store (clean implementation)
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import vocabData from '@/data/vocab.example.json'
+// Data loading is delegated to library loader so we can switch vocab sources at runtime
+import { loadLibrary, libraries, type LibraryId } from '@/data/libraries'
 import type { Word, SeenLog, ScheduledReview } from '@/types'
 import { addDays, now } from '@/utils/time'
 
@@ -12,6 +13,10 @@ const STORAGE_SCHEDULE = 'vh_schedule_v1'
 
 export const useSessionStore = defineStore('session', () => {
   const sessionId = ref('')
+  // Track which vocabulary library is currently selected
+  const currentLibrary = ref<LibraryId>('ielts')
+  // Immutable base words loaded from the current library (used to resolve history items)
+  const baseWords = ref<Word[]>([])
   const dueNow = ref<Word[]>([])
   const reviewQueue = ref<Word[]>([])
   const newQueue = ref<Word[]>([])
@@ -28,13 +33,15 @@ export const useSessionStore = defineStore('session', () => {
   const timerId = ref<number | 0>(0)
 
   const totalCount = computed(() => dueNow.value.length + reviewQueue.value.length + newQueue.value.length)
+  const totalWords = computed(() => baseWords.value.length)
   const currentWord = computed<Word | null>(() => {
     const id = history.value[histPos.value]
-    const all = [...reviewQueue.value, ...dueNow.value, ...newQueue.value]
     if (id) {
-      const found = all.find(w => w.id === id)
+      // Resolve by immutable base map to ensure prev() shows correct content even if queues shifted
+      const found = baseWords.value.find(w => w.id === id)
       if (found) return found
     }
+    // Fallback to head-of-queue when there's no history yet
     if (reviewQueue.value.length) return reviewQueue.value[0]
     if (dueNow.value.length) return dueNow.value[0]
     if (newQueue.value.length) return newQueue.value[0]
@@ -51,6 +58,7 @@ export const useSessionStore = defineStore('session', () => {
   function persist() {
     localStorage.setItem(STORAGE_STATE, JSON.stringify({
       sessionId: sessionId.value,
+      currentLibrary: currentLibrary.value,
       dueNow: dueNow.value,
       reviewQueue: reviewQueue.value,
       newQueue: newQueue.value,
@@ -139,7 +147,12 @@ export const useSessionStore = defineStore('session', () => {
   }
   async function initialize() {
     scheduled.value = loadSchedules()
-    const words: Word[] = vocabData as Word[]
+    // Try restore library selection first
+    const savedGlobal = loadState()
+    if (savedGlobal?.currentLibrary) currentLibrary.value = savedGlobal.currentLibrary as LibraryId
+    // Load words for the current library
+    const words: Word[] = await loadLibrary(currentLibrary.value)
+    baseWords.value = words
     const saved = loadState()
     if (saved) {
       sessionId.value = saved.sessionId || `s_${Date.now()}`
@@ -176,11 +189,40 @@ export const useSessionStore = defineStore('session', () => {
     startTicker(); persist(); ensureCurrent()
   }
 
+  // Change library and reset session queues while preserving schedules
+  async function changeLibrary(id: LibraryId) {
+    if (currentLibrary.value === id) return
+    currentLibrary.value = id
+    const words = await loadLibrary(id)
+    baseWords.value = words
+    // Reset per-session state
+    dueNow.value = []
+    reviewQueue.value = []
+    newQueue.value = [...words]
+    history.value = []
+    histPos.value = -1
+    visibleElapsedSec.value = 0
+    lastProcessedBlock.value = 0
+    thirtyTriggered.value = false
+    seen.value = []
+    // Persist snapshot including library id
+    persist()
+    // Store library choice in the same storage blob
+    try {
+      const raw = localStorage.getItem(STORAGE_STATE)
+      const obj = raw ? JSON.parse(raw) : {}
+      obj.currentLibrary = currentLibrary.value
+      localStorage.setItem(STORAGE_STATE, JSON.stringify(obj))
+    } catch {}
+    ensureCurrent()
+  }
+
   return {
     sessionId, dueNow, reviewQueue, newQueue, history, histPos, visibleElapsedSec,
     blockSizeSec, totalSessionSec, lastProcessedBlock, thirtyTriggered, seen,
     scheduled, mode, timerId,
-    currentWord, uiIndex, uiTotal, totalCount,
+    currentWord, uiIndex, uiTotal, totalCount, totalWords,
+    currentLibrary, changeLibrary,
     initialize, next, prev, onVisibilityChange,
   }
 })
