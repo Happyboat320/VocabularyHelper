@@ -21,14 +21,20 @@ async function fetchJson<T>(url: string): Promise<T> {
   return res.json() as Promise<T>
 }
 
+function normalizeText(input: any): string {
+  const s = String(input ?? '')
+  // Normalize Windows/Mac line breaks and turn literal "\n" into real newlines
+  return s.replace(/\r\n?/g, '\n').replace(/\\n/g, '\n')
+}
+
 // Map IELTS-shaped entries to internal Word type
 function mapIelts(entries: any[]): Word[] {
   return entries.map((e, i) => {
-    const term = String(e.word ?? e.term ?? '').trim()
-    const phonetic = (e.phonetic ? String(e.phonetic).trim() : undefined) || undefined
-    const translation = String(e.translation ?? '').trim()
-    const definition = String(e.definition ?? '').trim()
-    const example = String(e.example ?? '').trim()
+    const term = normalizeText(e.word ?? e.term).trim()
+    const phonetic = (e.phonetic ? normalizeText(e.phonetic).trim() : undefined) || undefined
+    const translation = normalizeText(e.translation).trim()
+    const definition = normalizeText(e.definition).trim()
+    const example = normalizeText(e.example).trim()
     const meaning = translation || definition || ''
     const examples = example ? example.split('\n').map((s: string) => s.trim()).filter(Boolean) : undefined
     const id = `${term || 'w'}#${i}`
@@ -41,10 +47,11 @@ function mapIelts(entries: any[]): Word[] {
 function mapExample(entries: any[]): Word[] {
   return entries.map((e, i) => {
     const id = String(e.id ?? `${e.term ?? 'w'}#${i}`)
-    const term = String(e.term ?? '').trim()
-    const meaning = String(e.meaning ?? '').trim()
-    const phonetic = e.phonetic ? String(e.phonetic).trim() : undefined
-    const examples = Array.isArray(e.examples) ? e.examples : undefined
+    const term = normalizeText(e.term).trim()
+    const meaning = normalizeText(e.meaning).trim()
+    const phonetic = e.phonetic ? normalizeText(e.phonetic).trim() : undefined
+  const ex: any[] = Array.isArray(e.examples) ? e.examples : []
+  const examples = ex.map((x: any) => normalizeText(x).trim()).filter(Boolean)
     return { id, term, meaning, phonetic, examples }
   })
 }
